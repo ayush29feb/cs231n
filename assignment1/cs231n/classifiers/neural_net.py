@@ -66,6 +66,7 @@ class TwoLayerNet(object):
     W1, b1 = self.params['W1'], self.params['b1']
     W2, b2 = self.params['W2'], self.params['b2']
     N, D = X.shape
+    C = W2.shape[1]
 
     # Compute the forward pass
     scores = None
@@ -74,7 +75,8 @@ class TwoLayerNet(object):
     # Store the result in the scores variable, which should be an array of      #
     # shape (N, C).                                                             #
     #############################################################################
-    pass
+    scores_h = np.maximum(np.matmul(X, W1) + b1, 0)
+    scores = np.matmul(scores_h, W2) + b2
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -91,8 +93,12 @@ class TwoLayerNet(object):
     # in the variable loss, which should be a scalar. Use the Softmax           #
     # classifier loss. So that your results match ours, multiply the            #
     # regularization loss by 0.5                                                #
-    #############################################################################
-    pass
+    ############################################################################# 
+    scores_exp = np.log(np.exp(scores).sum(1)) # get the exponents
+    scores_yi = scores[range(N), y] # get scores of correct label
+    loss = -1 * np.sum(scores_yi) + np.sum(scores_exp) # sum over all loss
+    loss /= N # avg 
+    loss += 0.5 * reg * (np.sum(W1 ** 2) + np.sum(W2 ** 2)) # add l2 regularization
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -104,7 +110,7 @@ class TwoLayerNet(object):
     # and biases. Store the results in the grads dictionary. For example,       #
     # grads['W1'] should store the gradient on W1, and be a matrix of same size #
     #############################################################################
-    pass
+
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
