@@ -74,20 +74,14 @@ def svm_loss_vectorized(W, X, y, reg):
   # Implement a vectorized version of the structured SVM loss, storing the    #
   # result in loss.                                                           #
   #############################################################################
-  num_classes = W.shape[1]
-  num_train = X.shape[0]
+  C = W.shape[1]
+  N = X.shape[0]
 
   scores = np.matmul(X, W)
-  scores_y = scores.reshape(-1)[y + np.arange(num_train) * num_classes] # scores[y[i]] for all i in num_train
-  scores_Y = np.matmul(np.array([scores_y]).T, np.ones((1, num_classes)))
-  margin = (scores - scores_Y + np.ones(scores.shape))
-  
-  loss = np.sum(margin.clip(min=0)) / num_train
-
-  margin_indicator = np.int64(margin > 0)
-  margin_indicator_yi = np.sum(margin_indicator, 1)
-  margin_indicator.reshape(-1)
-  margin_indicator[y + np.arange(num_train) * num_classes] -= margin_indicator_yi
+  scores_yi = scores[range(N), y]
+  loss_matrix = np.maximum((scores.T - scores_yi).T + 1, 0)
+  loss = np.sum(loss_matrix) / N - 1
+  loss += 0.5 * reg * np.sum(W * W)
 
   #############################################################################
   #                             END OF YOUR CODE                              #
@@ -103,6 +97,10 @@ def svm_loss_vectorized(W, X, y, reg):
   # to reuse some of the intermediate values that you used to compute the     #
   # loss.                                                                     #
   #############################################################################
+  loss_indicator = np.int64(loss_matrix > 0)
+  loss_indicator[range(N), y] -= np.sum(loss_indicator, axis=1)
+  dW = np.matmul(X.T, loss_indicator) / N
+  dW += reg * W
 
   #############################################################################
   #                             END OF YOUR CODE                              #
