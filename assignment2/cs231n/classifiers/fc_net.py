@@ -287,7 +287,10 @@ class FullyConnectedNet(object):
                                             self.params['W' + str(i)],
                                             self.params['b' + str(i)])
       
-      
+      if self.use_dropout:
+        out_i, cache_drop = dropout_forward(out_i, self.dropout_param)
+        cache_i = (cache_i, cache_drop)
+
       out_prev = out_i
       cache_.append(cache_i)
 
@@ -329,10 +332,16 @@ class FullyConnectedNet(object):
 
     i = self.num_layers - 1
     while cache_ and i > 0:
+      cache_i =  cache_.pop()
+
+      if self.use_dropout:
+        cache_i, cache_drop = cache_i
+        dout_prev = dropout_backward(dout_prev, cache_drop)
+
       if self.use_batchnorm:
-        dout_i, dW_i, db_i, dgamma_i, dbeta_i = affine_batch_relu_backward(dout_prev, cache_.pop())
+        dout_i, dW_i, db_i, dgamma_i, dbeta_i = affine_batch_relu_backward(dout_prev, cache_i)
       else:
-        dout_i, dW_i, db_i = affine_relu_backward(dout_prev, cache_.pop())
+        dout_i, dW_i, db_i = affine_relu_backward(dout_prev, cache_i)
       
       dout_prev = dout_i
 
